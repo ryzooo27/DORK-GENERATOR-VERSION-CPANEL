@@ -53,7 +53,7 @@ class ZoomEyeSearcher:
     def __init__(self, api_token):
         self.api_token = api_token
         self.all_results = []
-        self.base_url = "https://api.zoomeye.org"
+        self.base_url = "https://api.zoomeye.ai"
         self.headers = {
             "Authorization": f"JWT {api_token}",
             "User-Agent": "ZoomEye-API-Client/2.0"
