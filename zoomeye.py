@@ -3,8 +3,14 @@
 # -*- coding: utf-8 -*-
 
 """
-zoomeye-dork-generator.py — ZoomEye Dork Generator
+zoomeye-dork-generator.py — ZoomEye Dork Generator (IMPROVED)
 Free tier: 10,000 queries/month - Perfect untuk hunting!
+
+PERBAIKAN:
+- Retry logic (3x attempt)
+- Flexible timeout (connect=10s, read=30s)
+- Better error handling
+- Connection pool
 
 Setup:
 1. Daftar di https://www.zoomeye.org
@@ -20,6 +26,8 @@ import requests
 import time
 import json
 from datetime import datetime
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 # ══════════════════════════════════════════════════════════════
 # COLORS
@@ -36,11 +44,11 @@ class C:
     RESET = "\033[0m"
 
 # ══════════════════════════════════════════════════════════════
-# ZOOMEYE SEARCHER
+# ZOOMEYE SEARCHER (IMPROVED)
 # ══════════════════════════════════════════════════════════════
 
 class ZoomEyeSearcher:
-    """ZoomEye API Searcher - Free Tier"""
+    """ZoomEye API Searcher - Free Tier (dengan Retry Logic)"""
     
     def __init__(self, api_token):
         self.api_token = api_token
@@ -48,8 +56,20 @@ class ZoomEyeSearcher:
         self.base_url = "https://api.zoomeye.org"
         self.headers = {
             "Authorization": f"JWT {api_token}",
-            "User-Agent": "ZoomEye-API-Client"
+            "User-Agent": "ZoomEye-API-Client/2.0"
         }
+        
+        # Setup session dengan retry logic
+        self.session = requests.Session()
+        retries = Retry(
+            total=3,  # Maksimal 3 kali retry
+            backoff_factor=1,  # Wait 1s, 2s, 4s between retries
+            status_forcelist=[408, 429, 500, 502, 503, 504],  # Retry on these status codes
+            allowed_methods=["GET", "POST"]
+        )
+        adapter = HTTPAdapter(max_retries=retries)
+        self.session.mount("http://", adapter)
+        self.session.mount("https://", adapter)
     
     def verify_token(self):
         """Verify API token is valid"""
@@ -58,7 +78,8 @@ class ZoomEyeSearcher:
         
         try:
             url = f"{self.base_url}/user/login"
-            response = requests.get(url, headers=self.headers, timeout=10)
+            # timeout = (connect_timeout, read_timeout)
+            response = self.session.get(url, headers=self.headers, timeout=(10, 30))
             
             if response.status_code == 200:
                 data = response.json()
@@ -71,12 +92,24 @@ class ZoomEyeSearcher:
                 print(f"    Response: {response.text[:200]}")
                 return False
         
+        except requests.exceptions.Timeout as e:
+            print(f"{C.RED}[!] Timeout Error: {str(e)}{C.RESET}")
+            print(f"    💡 Tips: Koneksi kamu lambat atau API sedang overloaded")
+            print(f"    Coba lagi dalam beberapa saat...")
+            return False
+        
+        except requests.exceptions.ConnectionError as e:
+            print(f"{C.RED}[!] Connection Error: {str(e)}{C.RESET}")
+            print(f"    💡 Tips: Pastikan internet kamu stabil")
+            print(f"    Atau ISP mungkin memblokir akses ke api.zoomeye.org")
+            return False
+        
         except Exception as e:
             print(f"{C.RED}[!] Error: {str(e)}{C.RESET}")
             return False
     
     def search(self, query, page=1, max_pages=5):
-        """Search ZoomEye"""
+        """Search ZoomEye dengan retry logic"""
         
         print(f"\n{C.CYAN}[*] Searching ZoomEye...{C.RESET}")
         print(f"    Query: {query[:80]}...")
@@ -94,7 +127,13 @@ class ZoomEyeSearcher:
                 
                 print(f"    Page {page_num}...", end=" ", flush=True)
                 
-                response = requests.get(url, headers=self.headers, params=params, timeout=15)
+                # Timeout: (connect=10s, read=30s)
+                response = self.session.get(
+                    url, 
+                    headers=self.headers, 
+                    params=params, 
+                    timeout=(10, 30)
+                )
                 
                 if response.status_code != 200:
                     print(f"\n{C.RED}[!] HTTP {response.status_code}{C.RESET}")
@@ -142,6 +181,15 @@ class ZoomEyeSearcher:
                 
                 page_num += 1
                 time.sleep(0.5)  # Rate limiting
+            
+            except requests.exceptions.Timeout:
+                print(f"\n{C.YELLOW}[!] Timeout on page {page_num} (retrying...){C.RESET}")
+                time.sleep(2)
+                continue
+            
+            except requests.exceptions.ConnectionError as e:
+                print(f"\n{C.RED}[!] Connection error: {str(e)[:60]}{C.RESET}")
+                break
             
             except Exception as e:
                 print(f"\n{C.RED}[!] Error: {str(e)[:80]}{C.RESET}")
@@ -211,7 +259,7 @@ class ZoomEyeSearcher:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="ZoomEye Dork Generator - Free tier (10k/month)",
+        description="ZoomEye Dork Generator - Free tier (10k/month) [IMPROVED]",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 SETUP:
@@ -222,15 +270,15 @@ SETUP:
 USAGE:
 
 # Test connection
-python3 zoomeye-dork-generator.py --token YOUR_TOKEN --verify
+python3 zoomeye-dork-generator-FIXED.py --token YOUR_TOKEN --verify
 
 # Single query
-python3 zoomeye-dork-generator.py --token YOUR_TOKEN \\
+python3 zoomeye-dork-generator-FIXED.py --token YOUR_TOKEN \\
   --query 'port:2087 service:cPanel' \\
   -o results.txt
 
 # Batch queries
-python3 zoomeye-dork-generator.py --token YOUR_TOKEN \\
+python3 zoomeye-dork-generator-FIXED.py --token YOUR_TOKEN \\
   --batch dorks.txt \\
   -o results.txt
 
@@ -240,6 +288,12 @@ EXAMPLE QUERIES:
 - port:2087 title:WHM
 - port:2087 country:ID
 - port:2087
+
+IMPROVEMENTS:
+✓ Auto-retry logic (max 3x)
+✓ Flexible timeout (10s connect, 30s read)
+✓ Better error messages
+✓ Connection pooling
         """
     )
     
@@ -254,7 +308,7 @@ EXAMPLE QUERIES:
     args = parser.parse_args()
     
     print(f"\n{C.BOLD}{C.BLUE}═══════════════════════════════════════{C.RESET}")
-    print(f"{C.BOLD}{C.BLUE}  ZOOMEYE DORK GENERATOR{C.RESET}")
+    print(f"{C.BOLD}{C.BLUE}  ZOOMEYE DORK GENERATOR (IMPROVED){C.RESET}")
     print(f"{C.BOLD}{C.BLUE}═══════════════════════════════════════{C.RESET}")
     
     searcher = ZoomEyeSearcher(args.token)
