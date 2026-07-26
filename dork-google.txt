@@ -1,0 +1,121 @@
+# GOOGLE DORKS UNTUK cPanel HUNTING
+
+## Basic Dorks (Port Detection)
+inurl:2087
+port:2087
+:2087 cPanel
+inurl:2087 cPanel
+inurl:2087 WHM
+
+## Title-Based Dorks
+intitle:"WHM Login"
+intitle:"cPanel Login"
+intitle:"WebHost Manager"
+intitle:"Server Administrator"
+intitle:"WHM - WebHost Manager"
+
+## Content-Based Dorks
+intext:"WHM - WebHost Manager"
+intext:"Server Administrator"
+intext:"WebHost Manager" port 2087
+intext:"cPanel" inurl:2087
+body:"WHM Login" port:2087
+
+## Combined Dorks
+inurl:2087 intitle:WHM
+inurl:2087 intitle:cPanel
+inurl:2087 "Server Administrator"
+inurl:2087 "WebHost Manager"
+inurl:2087 body:"Login"
+
+## Version-Specific Dorks
+"cPanel/11" port:2087
+"cPanel/11" inurl:2087
+"cPanel/12" inurl:2087
+"cPanel/11.126" port:2087
+"cPanel/11.110" port:2087
+
+## Regional Dorks - Indonesia
+cPanel site:.id
+WHM site:.id
+inurl:2087 site:.id
+intitle:WHM site:.id
+intext:cPanel site:.id
+inurl:2087 Indonesia
+cPanel Indonesia port:2087
+
+## Regional Dorks - Singapore
+cPanel site:.sg
+WHM site:.sg
+inurl:2087 site:.sg
+intitle:WHM site:.sg
+
+## Regional Dorks - Malaysia
+cPanel site:.my
+WHM site:.my
+inurl:2087 site:.my
+intitle:WHM site:.my
+
+## Regional Dorks - Thailand
+cPanel site:.th
+WHM site:.th
+inurl:2087 site:.th
+
+## Regional Dorks - Philippines
+cPanel site:.ph
+WHM site:.ph
+inurl:2087 site:.ph
+
+## Regional Dorks - Vietnam
+cPanel site:.vn
+WHM site:.vn
+inurl:2087 site:.vn
+
+## Advanced Dorks
+"Powered by cPanel" port:2087
+"Copyright cPanel" inurl:2087
+cache:cpanel.net 2087
+"2087" "cPanel" -forum -blog
+inurl:2087 -localhost -127.0.0.1 -example.com
+inurl:2087 "HTTP/1.1 200 OK"
+
+## DNS/Subdomain Dorks
+subdomain:cpanel site:.id
+subdomain:whm site:.id
+subdomain:2087 site:.id
+cpanel.* site:.id
+whm.* site:.id
+
+## Hosting Provider Dorks
+cPanel site:*.com.br
+cPanel site:*.com.au
+cPanel site:*.net.id
+cPanel site:*.web.id
+
+## Bypass Dorks (Less Indexed)
+inurl:":" port "2087"
+inurl:2087 -"404" -"403"
+inurl:2087 -"Access Denied"
+inurl:2087 -"Forbidden"
+
+## Directory Dorks
+inurl:2087/login
+inurl:2087/admin
+inurl:2087/cpanel
+inurl:2087/whm
+inurl:2087/index.html
+
+## SSL Certificate Dorks
+ssl:"cPanel" port:2087
+ssl:"WHM" port:2087
+certificate:cPanel port:2087
+
+## Error Page Dorks
+inurl:2087 "403 Forbidden"
+inurl:2087 "error"
+inurl:2087 "page not found"
+
+## File Type Dorks
+filetype:html "cPanel" 2087
+filetype:txt "cPanel" 2087
+filetype:json "cPanel" 2087
