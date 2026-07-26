@@ -125,6 +125,32 @@ class GoogleDorkSearcher:
                 'inurl:2087 "Copyright cPanel"',
             ]
     
+    def load_dorks_from_file(self, filename):
+        """Load dork queries dari file"""
+        
+        dorks = []
+        try:
+            with open(filename, 'r', encoding='utf-8') as f:
+                for line in f:
+                    line = line.strip()
+                    # Skip empty lines dan comments
+                    if line and not line.startswith('#'):
+                        dorks.append(line)
+            
+            if not dorks:
+                print(f"{C.RED}[!] File {filename} kosong atau hanya berisi comments{C.RESET}")
+                return None
+            
+            print(f"{C.GREEN}[+] Loaded {len(dorks)} dorks dari {filename}{C.RESET}\n")
+            return dorks
+        
+        except FileNotFoundError:
+            print(f"{C.RED}[!] File not found: {filename}{C.RESET}")
+            return None
+        except Exception as e:
+            print(f"{C.RED}[!] Error reading file: {e}{C.RESET}")
+            return None
+    
     def search_google(self, dork, max_results=10):
         """Search Google dengan dork query"""
         
@@ -341,11 +367,23 @@ python3 google-dork-generator.py --type advanced -o advanced-results.txt
 # Custom dork
 python3 google-dork-generator.py --dork 'inurl:2087 intitle:WHM' -o custom.txt
 
+# Batch mode - dari file dork list
+python3 google-dork-generator.py --batch dork-list.txt -o results.txt
+
 DORK TYPES:
 - basic     : Common dorks
 - specific  : Port 2087 + cPanel specific
 - regional  : Asia countries (ID, SG, MY, TH, etc)
 - advanced  : Advanced dork techniques
+
+BATCH FILE FORMAT:
+Setiap dork dalam satu baris. Contoh (dork-list.txt):
+---
+inurl:2087
+intitle:"WHM Login"
+intext:"Server Administrator"
+cPanel site:.id
+---
 
 EXAMPLE DORKS:
 - inurl:2087
@@ -360,6 +398,7 @@ EXAMPLE DORKS:
                        choices=["basic", "specific", "regional", "advanced"],
                        help="Dork type")
     parser.add_argument("-d", "--dork", help="Custom dork query")
+    parser.add_argument("-b", "--batch", help="Batch mode - load dorks dari file")
     parser.add_argument("-o", "--output", help="Output file (targets)")
     parser.add_argument("-u", "--urls", help="Output file (raw URLs)")
     parser.add_argument("-l", "--list", action="store_true", help="List all dorks")
@@ -394,7 +433,15 @@ EXAMPLE DORKS:
         return
     
     # Search
-    if args.dork:
+    if args.batch:
+        # Batch mode dari file
+        print(f"{C.CYAN}[*] Batch mode - loading dari {args.batch}...{C.RESET}\n")
+        dorks = searcher.load_dorks_from_file(args.batch)
+        if dorks:
+            searcher.search_all_dorks(dorks)
+        else:
+            return
+    elif args.dork:
         # Custom dork
         print(f"{C.CYAN}[*] Searching custom dork...{C.RESET}\n")
         searcher.search_google(args.dork, max_results=20)
